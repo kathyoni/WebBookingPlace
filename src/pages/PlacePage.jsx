@@ -1,19 +1,20 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Perks from "../Perk";
+import axios from "axios";
 
 export default function PlacesPage() {
   const { action } = useParams();
-  const { title, setTitle } = useState("");
-  const { address, setAddress } = useState("");
-  const { addPhotos, setAddPhotos } = useState([]);
-  const { photoLink, setPhotoLink } = useState("");
-  const { description, setDescription } = useState("");
-  const { perks, setPerks } = useState([]);
-  const { extraInfo, setExtraInfo } = useState("");
-  const { checkIn, setCheckIn } = useState("");
-  const { checkOut, setCheckOut } = useState("");
-  const { maxGuests, setMaxGuests } = useState("1");
+  const [title, setTitle] = useState("");
+  const [address, setAddress] = useState("");
+  const [addPhotos, setAddPhotos] = useState([]);
+  const [photoLink, setPhotoLink] = useState("");
+  const [description, setDescription] = useState("");
+  const [perks, setPerks] = useState([]);
+  const [extraInfo, setExtraInfo] = useState("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [maxGuests, setMaxGuests] = useState("1");
 
   function inputHeader(text) {
     return <h2 className="text-2xl mt-4">{text}</h2>;
@@ -29,6 +30,35 @@ export default function PlacesPage() {
       </>
     );
   }
+  async function addPhotoByLink(ev) {
+    ev.preventDefault();
+    const { data: filename } = await axios.post("/upload-by-link", {
+      link: photoLink,
+    });
+    setAddPhotos((prev) => {
+      return [...prev, filename];
+    });
+    setPhotoLink("");
+  }
+  function uploadPhoto(ev) {
+    const files = ev.target.files;
+    const data = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      data.append("photos", files[i]);
+    }
+
+    axios
+      .post("/upload", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((response) => {
+        const { data: filenames } = response;
+        setAddPhotos((prev) => {
+          return [...prev, ...filenames];
+        });
+      });
+  }
+
   return (
     <div>
       {action !== "new" && (
@@ -78,12 +108,31 @@ export default function PlacesPage() {
                 type="text"
                 placeholder="{Add using a link...jpg}"
               />
-              <button className="bg-gray-200 rounded-2xl px-4">
+              <button
+                onClick={addPhotoByLink}
+                className="bg-gray-200 rounded-2xl px-4"
+              >
                 Add&nbsp;Photo
               </button>
             </div>
-            <div className="mt-2 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-              <button className="flex gap-1 justify-center border bg-transparent rounded-2xl p-8 text-2xl text-gray-600 ">
+            <div className="mt-2 grid gap-2 grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              {addPhotos.length > 0 &&
+                addPhotos.map((link) => (
+                  <div className="h-32 flex " key={link}>
+                    <img
+                      className="rounded-2xl w-full object-cover"
+                      src={"http://localhost:4000/uploads/" + link}
+                      alt=""
+                    />
+                  </div>
+                ))}
+              <label className="h-32 cursor-pointer flex items-center gap-1 justify-center border bg-transparent rounded-2xl p-2 text-2xl text-gray-600 ">
+                <input
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={uploadPhoto}
+                />
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -99,7 +148,7 @@ export default function PlacesPage() {
                   />
                 </svg>
                 Upload
-              </button>
+              </label>
             </div>
             {preInput("Description", "depcription of the place")}
             <textarea
