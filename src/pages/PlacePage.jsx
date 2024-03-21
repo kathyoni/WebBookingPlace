@@ -1,200 +1,169 @@
-import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import Perks from "../Perk";
 import axios from "axios";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import BookingWidget from "../BookingWidget";
 
-export default function PlacesPage() {
-  const { action } = useParams();
-  const [title, setTitle] = useState("");
-  const [address, setAddress] = useState("");
-  const [addPhotos, setAddPhotos] = useState([]);
-  const [photoLink, setPhotoLink] = useState("");
-  const [description, setDescription] = useState("");
-  const [perks, setPerks] = useState([]);
-  const [extraInfo, setExtraInfo] = useState("");
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [maxGuests, setMaxGuests] = useState("1");
+export default function PlacePage() {
+  const { id } = useParams();
+  const [place, setPlace] = useState(null);
+  const [showAllPhotos, setShowAllPhotos] = useState(false);
 
-  function inputHeader(text) {
-    return <h2 className="text-2xl mt-4">{text}</h2>;
-  }
-  function inputDescription(text) {
-    return <p className=" text-gray-500 text-sm">{text}</p>;
-  }
-  function preInput(header, description) {
-    return (
-      <>
-        {inputHeader(header)}
-        {inputDescription(description)}
-      </>
-    );
-  }
-  async function addPhotoByLink(ev) {
-    ev.preventDefault();
-    const { data: filename } = await axios.post("/upload-by-link", {
-      link: photoLink,
-    });
-    setAddPhotos((prev) => {
-      return [...prev, filename];
-    });
-    setPhotoLink("");
-  }
-  function uploadPhoto(ev) {
-    const files = ev.target.files;
-    const data = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      data.append("photos", files[i]);
+  useEffect(() => {
+    if (!id) {
+      return;
     }
+    axios.get(`/places/${id}`).then((response) => {
+      setPlace(response.data);
+    });
+  }, [id]);
 
-    axios
-      .post("/upload", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
-      .then((response) => {
-        const { data: filenames } = response;
-        setAddPhotos((prev) => {
-          return [...prev, ...filenames];
-        });
-      });
+  if (!place) return " ";
+  if (showAllPhotos) {
+    return (
+      <div className="absolute inset-0 bg-black text-white min-h-screen">
+        <div className="bg-black p-8 grid gap-4">
+          <div>
+            <h2 className="text-3xl">Photos of {place.title}</h2>
+            <button
+              onClick={() => setShowAllPhotos(false)}
+              className="fixed right-8 top-8 flex gap-1 px-4 py-2 rounded-2xl shadow shadow-black bg-white text-black"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18 18 6M6 6l12 12"
+                />
+              </svg>
+              Close photos
+            </button>
+          </div>
+          {place?.photos?.length > 0 &&
+            place.photos.map((photo) => (
+              <div>
+                <img src={"http://localhost:4000/uploads/" + photo} alt="" />
+              </div>
+            ))}
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div>
-      {action !== "new" && (
-        <div className="text-center">
-          <Link
-            className="inline-flex gap-1 bg-primary text-white px-4 py-2 rounded-full"
-            to={"/account/places/new"}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="w-6 h-6"
-            >
-              <path
-                fillRule="evenodd"
-                d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Add new place
-          </Link>
-        </div>
-      )}
-      {action === "new" && (
-        <div>
-          <form>
-            {preInput("Title", "Title for your place")}
-            <input
-              type="text"
-              value={title}
-              onChange={(ev) => setTitle(ev.target.value)}
-              placeholder="title, for example"
-            />
-            {preInput("Address", "Address for your place")}
-            <input
-              type="text"
-              value={address}
-              onChange={(ev) => setAddress(ev.target.value)}
-              placeholder="adress"
-            />
-            {preInput("Photos", "more = better")}
-            <div className="flex gap-2">
-              <input
-                value={photoLink}
-                onChange={(ev) => setPhotoLink(ev.target.value)}
-                type="text"
-                placeholder="{Add using a link...jpg}"
-              />
-              <button
-                onClick={addPhotoByLink}
-                className="bg-gray-200 rounded-2xl px-4"
-              >
-                Add&nbsp;Photo
-              </button>
-            </div>
-            <div className="mt-2 grid gap-2 grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-              {addPhotos.length > 0 &&
-                addPhotos.map((link) => (
-                  <div className="h-32 flex " key={link}>
-                    <img
-                      className="rounded-2xl w-full object-cover"
-                      src={"http://localhost:4000/uploads/" + link}
-                      alt=""
-                    />
-                  </div>
-                ))}
-              <label className="h-32 cursor-pointer flex items-center gap-1 justify-center border bg-transparent rounded-2xl p-2 text-2xl text-gray-600 ">
-                <input
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={uploadPhoto}
+    <div className="mt-4 bg-gray-100 -mx-8 px-8 pt-8">
+      <h1 className="text-3xl -mx-8 px-8 py-4">{place.title}</h1>
+      <a
+        className="flex gap-1 my-3  font-semibold underline"
+        target="_black"
+        href={"https://maps.google.com/?q=" + place.address}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="w-6 h-6"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+          />
+        </svg>
+
+        {place.address}
+      </a>
+      <div className="relative">
+        <div className="grid gap-2 grid-cols-[2fr_1fr] rounded-3xl overflow-hidden">
+          <div>
+            {place.photos?.[0] && (
+              <div>
+                <img
+                  className="aspect-square object-cover"
+                  src={"http://localhost:4000/uploads/" + place.photos[0]}
+                  alt=""
                 />
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-8 h-8"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.23-2.3 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"
+              </div>
+            )}
+          </div>
+          <div className="grid">
+            {place.photos?.[1] && (
+              <div>
+                <img
+                  className="aspect-square object-cover"
+                  src={"http://localhost:4000/uploads/" + place.photos[1]}
+                  alt=""
+                />
+              </div>
+            )}
+            <div>
+              {place.photos?.[2] && (
+                <div className="overflow-hidden">
+                  <img
+                    className="aspect-square object-cover relative top-2"
+                    src={"http://localhost:4000/uploads/" + place.photos[2]}
+                    alt=""
                   />
-                </svg>
-                Upload
-              </label>
+                </div>
+              )}
             </div>
-            {preInput("Description", "depcription of the place")}
-            <textarea
-              value={description}
-              onChange={(ev) => setDescription(ev.target.value)}
-            />
-            {preInput("Perk", "select all the perk of your place")}
-            <div className="mt-2 grid gap-2 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-              <Perks selected={perks} onChange={setPerks} />
-            </div>
-            {preInput("Extra info", "house,rule,etc")}
-            <textarea
-              value={extraInfo}
-              onChange={(ev) => setExtraInfo(ev.target.value)}
-            />
-            {preInput("Check in&out time", "Check in and check out ")}
-            <div className="grid gap-2 sm:grid-cols-3">
-              <div>
-                <h3 className="mt-2 -mb-1">Check in time</h3>
-                <input
-                  type="text"
-                  value={checkIn}
-                  onChange={(ev) => setCheckIn(ev.target.value)}
-                />
-              </div>
-              <div>
-                <h3 className="mt-2 -mb-1">Check out time</h3>
-                <input
-                  type="text"
-                  value={checkOut}
-                  onChange={(ev) => setCheckOut(ev.target.value)}
-                />
-              </div>
-              <div>
-                <h3 className="mt-2 -mb-1">Max number of guests</h3>
-                <input
-                  type="number"
-                  value={maxGuests}
-                  onChange={(ev) => setMaxGuests(ev.target.value)}
-                />
-              </div>
-            </div>
-            <button className="primary my-4">Save</button>
-          </form>
+          </div>
         </div>
-      )}
+        <button
+          onClick={() => setShowAllPhotos(true)}
+          className="flex gap-1 absolute bottom-2 right-2 px-4 py-2 bg-white rounded-2xl border border-black"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-6 h-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+            />
+          </svg>
+          Show more photos
+        </button>
+      </div>
+
+      <div className="mt-8 mb-8 gap-8 grid grid-cols-1 md:grid-cols-[2fr_1fr]">
+        <div>
+          <div className="my-4">
+            <h2 className="font-semibold text-2xl">Description</h2>
+            {place.description}
+          </div>
+          Check-in: {place.checkIn} <br />
+          Check-out: {place.checkOut} <br />
+          Max number of guest: {place.maxGuests}
+        </div>
+        <div>
+          <BookingWidget place={place} />
+        </div>
+      </div>
+      <div className="bg-white -mx-8 p-8 border-t">
+        <h2 className="font-semibold text-2xl">Extra Info</h2>
+        <div className="mb-4 mt-2 text-sm text-gray-800 leading-5">
+          {place.extraInfo}
+        </div>
+      </div>
     </div>
   );
 }
