@@ -32,7 +32,7 @@ export default function AccountNav() {
         </svg>
         My profile
       </Link>
-      <Link className={linkClasses("booking")} to={"/account/booking"}>
+      <Link className={linkClasses("bookings")} to={"/account/bookings"}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
