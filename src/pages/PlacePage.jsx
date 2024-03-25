@@ -9,7 +9,6 @@ export default function PlacePage() {
   const { id } = useParams();
   const [place, setPlace] = useState(null);
   
-
   useEffect(() => {
     if (!id) {
       return;
