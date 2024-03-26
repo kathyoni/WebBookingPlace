@@ -1,9 +1,8 @@
 import { Link, useParams } from "react-router-dom";
-import AccountNav from "../AccountNav";
+import AccountNav from "../components/AccountNav";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import PlaceImg from "../PlaceImg";
-
+import PlaceImg from "../components/PlaceImg";
 
 export default function PlacesPage() {
   const [places, setPlaces] = useState("");
@@ -40,10 +39,11 @@ export default function PlacesPage() {
           places.map((place) => (
             <Link
               to={"/account/places/" + place._id}
+              key={place._id}
               className="flex cursor-pointer gap-4 bg-gray-100 p-4 rounded-2xl"
             >
               <div className="flex h-32 w-32 bg-gray-300 grow shrink-0">
-                <PlaceImg place={place}/>
+                <PlaceImg place={place} />
               </div>
               <div>
                 <h2 className="text-xl">{place.title}</h2>

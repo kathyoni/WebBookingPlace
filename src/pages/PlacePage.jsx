@@ -1,14 +1,14 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import BookingWidget from "../BookingWidget";
-import PlaceGallery from "../PlaceGallery";
-import AddressLink from "../AddressLink";
+import BookingWidget from "../components/BookingWidget";
+import PlaceGallery from "../components/PlaceGallery";
+import AddressLink from "../components/AddressLink";
 
 export default function PlacePage() {
   const { id } = useParams();
   const [place, setPlace] = useState(null);
-  
+
   useEffect(() => {
     if (!id) {
       return;
@@ -19,7 +19,6 @@ export default function PlacePage() {
   }, [id]);
 
   if (!place) return " ";
-  
 
   return (
     <div className="mt-4 bg-gray-100 -mx-8 px-8 pt-8">

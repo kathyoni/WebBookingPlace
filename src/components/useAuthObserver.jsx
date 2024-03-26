@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import authManager from "./designpattern/AuthManager";
+import authManager from "../designpattern/AuthManager";
 
 function useAuthObserver(setUser) {
   useEffect(() => {

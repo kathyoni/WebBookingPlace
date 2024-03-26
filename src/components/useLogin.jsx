@@ -1,20 +1,20 @@
 // useLogin.js
 import { useContext, useState } from "react";
-import authManager from "./designpattern/AuthManager";
-import { UserContext } from "./UserContext";
+import authManager from "../designpattern/AuthManager";
+import { UserContext } from "../UserContext";
 
 function useLogin() {
   const { setUser } = useContext(UserContext);
-  const [redirect,setRedirect] = useState(false)
+  const [redirect, setRedirect] = useState(false);
 
-  async function handleLoginSubmit(ev,email, password) {
+  async function handleLoginSubmit(ev, email, password) {
     ev.preventDefault();
     try {
       const success = await authManager.login(email, password);
       if (success) {
         alert("Login successful!!");
         setUser(authManager.getUser());
-        setRedirect(true)
+        setRedirect(true);
       } else {
         alert("Login failed");
       }
@@ -24,7 +24,7 @@ function useLogin() {
     }
   }
 
-  return { handleLoginSubmit,redirect };
+  return { handleLoginSubmit, redirect };
 }
 
 export default useLogin;
